@@ -12,3 +12,35 @@
       #020617;
   }
 }
+
+@layer components {
+  .readme-prose { @apply text-slate-300 leading-relaxed; }
+  .readme-prose h1 { @apply mt-0 mb-6 text-3xl font-semibold text-slate-50 md:text-4xl; }
+  .readme-prose h2 { @apply mt-10 mb-4 text-2xl font-semibold text-slate-100; }
+  .readme-prose h3 { @apply mt-8 mb-3 text-xl font-semibold text-slate-100; }
+  .readme-prose p  { @apply my-4; }
+  .readme-prose a  { @apply text-brand-400 underline decoration-brand-500/40 underline-offset-2 hover:text-brand-50; }
+  .readme-prose ul { @apply my-4 list-disc space-y-1 pl-6; }
+  .readme-prose ol { @apply my-4 list-decimal space-y-1 pl-6; }
+  .readme-prose li { @apply marker:text-brand-500/70; }
+  .readme-prose strong { @apply text-slate-100; }
+  .readme-prose code {
+    @apply rounded bg-slate-800 px-1.5 py-0.5 text-sm text-brand-400;
+  }
+  .readme-prose pre {
+    @apply my-6 overflow-x-auto rounded-lg border border-slate-800 bg-slate-900/80 p-4 text-sm;
+  }
+  .readme-prose pre code { @apply bg-transparent p-0 text-slate-200; }
+  .readme-prose hr { @apply my-8 border-slate-800; }
+  .readme-prose blockquote {
+    @apply my-4 border-l-2 border-brand-500/60 pl-4 italic text-slate-400;
+  }
+  .readme-prose table {
+    @apply my-6 w-full border-collapse overflow-hidden rounded-lg border border-slate-800 text-sm;
+  }
+  .readme-prose thead { @apply bg-slate-800/60; }
+  .readme-prose th, .readme-prose td {
+    @apply border border-slate-800 px-3 py-2 text-left align-top;
+  }
+  .readme-prose th { @apply text-slate-100; }
+}

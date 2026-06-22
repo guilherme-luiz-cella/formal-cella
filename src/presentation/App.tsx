@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useLexer } from '@/application/useLexer';
 import { AutomatonDiagram } from './components/AutomatonDiagram';
 import { TokenInput } from './components/TokenInput';
@@ -5,8 +6,25 @@ import { TraceTape } from './components/TraceTape';
 import { TokenHistory } from './components/TokenHistory';
 import { Header } from './components/Header';
 import { LiveBuffer } from './components/LiveBuffer';
+import { ProjectPage } from './components/ProjectPage';
+
+function useHashRoute() {
+  const [hash, setHash] = useState(() => window.location.hash);
+  useEffect(() => {
+    const onChange = () => setHash(window.location.hash);
+    window.addEventListener('hashchange', onChange);
+    return () => window.removeEventListener('hashchange', onChange);
+  }, []);
+  return hash;
+}
 
 export function App() {
+  const route = useHashRoute();
+  if (route.startsWith('#/project')) return <ProjectPage />;
+  return <LexerPage />;
+}
+
+function LexerPage() {
   const lexer = useLexer();
 
   return (

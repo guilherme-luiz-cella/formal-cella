@@ -6,7 +6,7 @@ Implementação interativa de um **Analisador Léxico** baseado em um
 **Autômato Finito Determinístico (AFD)**, atendendo ao Trabalho Discente
 Efetivo (TDE) de Linguagens Formais — 2026/1.
 
-🌐 **Deploy:** https://formal.cella.website *(domínio em propagação)* · fallback: https://formal-cella.pages.dev
+**Deploy:** https://formal.cella.website *(domínio em propagação)* · fallback: https://formal-cella.pages.dev
 
 ---
 
@@ -164,12 +164,12 @@ Execute com `npm test`.
 
 ## 10. Critérios de avaliação atendidos
 
-1. ✅ Permite digitação do token (campo de entrada controlado).
-2. ✅ Acompanhamento símbolo-a-símbolo (fita de execução + diagrama animado).
-3. ✅ Aceita ou recusa tokens propostos (badge no histórico após o espaço).
-4. ✅ Execução estável (35 testes verdes, build sem warnings críticos).
-5. ✅ Interface clara, focada na máquina de estados.
-6. ✅ Algoritmo reflete fielmente o AFD — `δ` é literalmente uma função.
+1. Permite digitação do token (campo de entrada controlado).
+2. Acompanhamento símbolo-a-símbolo (fita de execução + diagrama animado).
+3. Aceita ou recusa tokens propostos (badge no histórico após o espaço).
+4. Execução estável (35 testes verdes, build sem warnings críticos).
+5. Interface clara, focada na máquina de estados.
+6. Algoritmo reflete fielmente o AFD — `δ` é literalmente uma função.
 
 ---
 
