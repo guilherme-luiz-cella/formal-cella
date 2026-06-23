@@ -1,12 +1,14 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import type { RecognisedToken } from '@/domain/token';
+import type { RecognisedToken, TokenKind } from '@/domain/token';
+import { stateLabel, type DFA } from '@/domain/automaton';
 
 interface Props {
+  dfa: DFA;
   tokens: ReadonlyArray<RecognisedToken>;
   onClear: () => void;
 }
 
-export function TokenHistory({ tokens, onClear }: Props) {
+export function TokenHistory({ dfa, tokens, onClear }: Props) {
   const accepted = tokens.filter((t) => t.status === 'ACCEPTED').length;
   const rejected = tokens.length - accepted;
 
@@ -65,8 +67,9 @@ export function TokenHistory({ tokens, onClear }: Props) {
                 <div className="truncate font-mono text-base text-slate-100">
                   {t.value}
                 </div>
-                <div className="text-[10px] uppercase tracking-widest text-slate-500">
-                  estado final: {t.finalState}
+                <div className="mt-0.5 flex items-center gap-2 text-[10px] uppercase tracking-widest text-slate-500">
+                  <KindBadge kind={t.kind} />
+                  <span>estado · {stateLabel(dfa, t.finalState)}</span>
                 </div>
               </div>
               <StatusBadge status={t.status} />
@@ -93,5 +96,19 @@ function StatusBadge({ status }: { status: RecognisedToken['status'] }) {
     >
       {ok ? 'aceito' : 'rejeitado'}
     </motion.span>
+  );
+}
+
+function KindBadge({ kind }: { kind: TokenKind }) {
+  const styles: Record<TokenKind, string> = {
+    KEYWORD: 'bg-fuchsia-500/15 text-fuchsia-300',
+    INVALID: 'bg-rose-500/15 text-rose-300',
+  };
+  return (
+    <span
+      className={`rounded-full px-2 py-0.5 text-[9px] font-semibold tracking-widest ${styles[kind]}`}
+    >
+      {kind}
+    </span>
   );
 }

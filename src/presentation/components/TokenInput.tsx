@@ -67,7 +67,7 @@ export function TokenInput({ buffer, onConsume, onBackspace, onReset }: Props) {
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
-        placeholder="ex.: alfa beta 123abc"
+        placeholder="ex.: let x 42 3.14 + 12.0abc"
         className="mt-2 w-full bg-transparent text-2xl tracking-wide text-slate-100 outline-none placeholder:text-slate-700"
       />
       <div className="mt-2 flex items-center justify-between text-xs text-slate-500">

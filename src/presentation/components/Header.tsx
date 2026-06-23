@@ -11,7 +11,7 @@ export function Header() {
       >
         <span className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-3 py-1 text-xs uppercase tracking-widest text-brand-400">
           <span className="size-1.5 rounded-full bg-brand-400 animate-pulse" />
-          Linguagens Formais · TDE 2026
+          CellaLang · Linguagens Formais · TDE 2026
         </span>
         <a
           href="#/project"
@@ -42,7 +42,7 @@ export function Header() {
         transition={{ duration: 0.6, delay: 0.1 }}
         className="mt-4 text-4xl font-semibold tracking-tight text-slate-50 md:text-5xl"
       >
-        Analisador <span className="text-brand-400">Léxico</span>
+        <span className="text-brand-400">CellaLang</span> Lexer
       </motion.h1>
       <motion.p
         initial={{ opacity: 0 }}
@@ -50,10 +50,14 @@ export function Header() {
         transition={{ duration: 0.6, delay: 0.25 }}
         className="mx-auto mt-3 max-w-2xl text-sm text-slate-400 md:text-base"
       >
-        Autômato finito determinístico que reconhece tokens sobre o alfabeto
-        <code className="mx-1 rounded bg-slate-800 px-1.5 py-0.5 text-brand-400">[a-z]</code>
-        e finaliza cada token ao detectar o separador
-        <code className="mx-1 rounded bg-slate-800 px-1.5 py-0.5 text-brand-400">␣</code>.
+        Autômato finito determinístico cujo
+        <code className="mx-1 rounded bg-slate-800 px-1.5 py-0.5 text-brand-400">Σ</code>
+        e estados são derivados do conjunto de
+        <code className="mx-1 rounded bg-slate-800 px-1.5 py-0.5 text-brand-400">keywords</code>
+        que você define. Cada palavra é um token; tudo o mais é
+        rejeitado. Separador
+        <code className="mx-1 rounded bg-slate-800 px-1.5 py-0.5 text-brand-400">␣</code>
+        finaliza o token.
       </motion.p>
     </header>
   );

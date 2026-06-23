@@ -7,9 +7,9 @@
   body {
     @apply font-mono text-slate-100 antialiased;
     background:
-      radial-gradient(1200px 600px at 80% -10%, rgba(99,102,241,0.15), transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, rgba(236,72,153,0.10), transparent 55%),
-      #020617;
+      radial-gradient(1200px 600px at 80% -10%, rgba(102,192,244,0.18), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(42,71,94,0.55), transparent 55%),
+      #171a21;
   }
 }
 

@@ -1,19 +1,25 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import type { DFAState } from '@/domain/automaton';
-import { isAccepting } from '@/domain/automaton';
+import {
+  DEAD,
+  isAccepting,
+  stateLabel,
+  type DFA,
+  type DFAState,
+} from '@/domain/automaton';
 
 interface Props {
+  dfa: DFA;
   buffer: string;
   state: DFAState;
 }
 
-export function LiveBuffer({ buffer, state }: Props) {
+export function LiveBuffer({ dfa, buffer, state }: Props) {
   const status =
     buffer.length === 0
       ? 'idle'
-      : state === 'DEAD'
+      : state === DEAD
         ? 'reject'
-        : isAccepting(state)
+        : isAccepting(dfa, state)
           ? 'accept'
           : 'pending';
 
@@ -73,7 +79,7 @@ export function LiveBuffer({ buffer, state }: Props) {
       </div>
       <div className="shrink-0 text-right">
         <div className="text-xs uppercase tracking-widest text-slate-500">
-          estado · {state}
+          estado · {stateLabel(dfa, state)}
         </div>
         <div className="mt-1 text-sm">{label}</div>
       </div>
