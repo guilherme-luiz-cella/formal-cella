@@ -1,153 +1,168 @@
-# CellaLang · Analisador Léxico (TDE 2026)
+# CellaLang - Analisador Lexico (TDE 2026)
 
-**URI Campus Erechim · Dep. de Engenharias e Ciência da Computação · Prof. Fabio Zanin**
+**URI Campus Erechim - Dep. de Engenharias e Ciencia da Computacao - Prof. Fabio Zanin**
 
-**CellaLang** é uma pequena linguagem inventada para este TDE de
-Linguagens Formais. O analisador léxico é um **Autômato Finito
-Determinístico (AFD)** multi-token, com 7 estados, que distingue
-**identificadores**, **palavras-reservadas (keywords)**, **números**
-(inteiros e ponto flutuante) e **operadores** de caractere único.
+**CellaLang** e uma linguagem inventada para este TDE de Linguagens
+Formais. O analisador lexico e um **Automato Finito Deterministico
+(AFD)** cujo conjunto de estados e o alfabeto sao **derivados em tempo
+de execucao a partir da gramatica** que o usuario edita.
 
-**Deploy:** https://formal.cella.website *(domínio em propagação)* · fallback: https://formal-cella.pages.dev
+A gramatica e simplesmente um **conjunto de palavras-chave (tokens)**.
+Cada palavra configurada e um token aceito; qualquer outra entrada e
+rejeitada. O AFD e o **trie das palavras**.
+
+**Deploy:** https://formal.cella.website *(dominio em propagacao)* - fallback: https://formal-cella.pages.dev
 
 ---
 
-## 1. Especificação da linguagem
+## 1. Especificacao da linguagem
 
-### 1.1 Alfabeto `Σ`
+### 1.1 Gramatica configuravel
 
-```
-Σ = LETTER ∪ DIGIT ∪ { . } ∪ OP
-
-LETTER = [a-zA-Z_]
-DIGIT  = [0-9]
-OP     = { + - * / = ( ) ; , < > ! }
-```
-
-O **espaço** *não* pertence a `Σ`: ele é tratado pela camada de
-aplicação como **separador**, finalizando o token corrente.
-
-### 1.2 Classes de token reconhecidas
-
-| Kind | Regex equivalente | Exemplos |
-| --- | --- | --- |
-| `KEYWORD`  | `let \| print \| if \| else \| while \| true \| false` | `let`, `if`, `true` |
-| `IDENT`    | `[a-zA-Z_][a-zA-Z0-9_]*` (não-keyword) | `x`, `Foo_42`, `_tmp` |
-| `NUMBER`   | `[0-9]+(\.[0-9]+)?` | `0`, `42`, `3.14` |
-| `OPERATOR` | um único caractere de `OP` | `+`, `=`, `(` |
-| `INVALID`  | (qualquer outra coisa) | `3.`, `++`, `a+b` |
-
-`KEYWORD` é uma camada léxica: o AFD aceita o token como identificador
-e a função `kindOf` reclassifica para `KEYWORD` se o lexema pertencer
-ao conjunto de palavras reservadas.
-
-## 2. Definição formal do AFD
+A gramatica e um conjunto finito de tokens:
 
 ```
-M = (Q, Σ, δ, q₀, F)
-
-Q  = { START, IN_IDENT, IN_INT, AFTER_DOT, IN_FLOAT, OP_DONE, DEAD }
-Σ  = LETTER ∪ DIGIT ∪ { . } ∪ OP        (ver 1.1)
-q₀ = START
-F  = { IN_IDENT, IN_INT, IN_FLOAT, OP_DONE }
+G = { w_1, w_2, ..., w_n }
 ```
 
-### 2.1 Função de transição δ
+Cada `w_i` e uma palavra qualquer sobre os caracteres digitados pelo
+usuario. Adicionar e remover palavras no painel **Gramatica - tokens
+aceitos** reconstroi o AFD imediatamente.
 
-| de \ símbolo  | LETTER     | DIGIT      | `.`         | OP          | INVÁLIDO  |
-| --- | --- | --- | --- | --- | --- |
-| `START`       | IN_IDENT   | IN_INT     | DEAD        | OP_DONE     | DEAD      |
-| `IN_IDENT`    | IN_IDENT   | IN_IDENT   | DEAD        | DEAD        | DEAD      |
-| `IN_INT`      | DEAD       | IN_INT     | AFTER_DOT   | DEAD        | DEAD      |
-| `AFTER_DOT`   | DEAD       | IN_FLOAT   | DEAD        | DEAD        | DEAD      |
-| `IN_FLOAT`    | DEAD       | IN_FLOAT   | DEAD        | DEAD        | DEAD      |
-| `OP_DONE`     | DEAD       | DEAD       | DEAD        | DEAD        | DEAD      |
-| `DEAD`        | DEAD       | DEAD       | DEAD        | DEAD        | DEAD      |
+### 1.2 Classes de token
 
-`OP_DONE` é um estado de aceitação **terminal**: como os operadores
-têm apenas um caractere, qualquer próximo símbolo dentro do mesmo
-token leva ao trap `DEAD`. Use **espaço** para finalizar e iniciar
-um novo token.
+Apenas dois resultados possiveis:
 
-`AFTER_DOT` é um estado **não-aceitação intermediário** — exige um
-dígito depois do ponto para virar `IN_FLOAT`. Por isso `3.` é
-rejeitado e `3.14` é aceito.
+| Kind     | Regra                                                |
+| ---      | ---                                                  |
+| `KEYWORD`| token e exatamente igual a alguma palavra da gramatica |
+| `INVALID`| qualquer outra coisa (prefixo, sufixo extra, palavra desconhecida) |
+
+### 1.3 Separador
+
+O **espaco** nao pertence a Sigma. E o separador que finaliza o token
+corrente. Pressionar **espaco** ou **Enter** dispara a avaliacao do
+buffer.
+
+## 2. Definicao formal do AFD
+
+O AFD e o **trie** das palavras configuradas:
+
+```
+M = (Q, Sigma, delta, q_0, F)
+
+Q       = todo prefixo (inclusive vazio) de toda palavra de G, mais qd
+Sigma   = uniao dos caracteres que aparecem em alguma palavra de G
+q_0     = ""                                  (prefixo vazio)
+F       = G                                  (so as palavras inteiras)
+
+delta : Q x Sigma -> Q
+  delta(s, c) = s + c          se s + c e prefixo de alguma palavra
+  delta(s, c) = qd             caso contrario
+  delta(qd, *) = qd            (estado-armadilha)
+```
+
+### 2.1 Exemplo
+
+Para `G = { let, if, in }`:
+
+```
+Q       = { "", l, le, let, i, if, in, qd }
+Sigma   = { l, e, t, i, f, n }
+F       = { let, if, in }
+```
+
+Tabela de transicao parcial:
+
+| Estado | l   | e   | t   | i   | f   | n   | Final |
+| ---    | --- | --- | --- | --- | --- | --- | ---   |
+| `q_0`  | q_1 | -   | -   | q_4 | -   | -   |       |
+| `q_1`  | -   | q_2 | -   | -   | -   | -   |       |
+| `q_2`  | -   | -   | q_3 | -   | -   | -   |       |
+| `q_3`  | -   | -   | -   | -   | -   | -   | sim   |
+| `q_4`  | -   | -   | -   | -   | q_5 | q_6 |       |
+| `q_5`  | -   | -   | -   | -   | -   | -   | sim   |
+| `q_6`  | -   | -   | -   | -   | -   | -   | sim   |
+| `qd`   | -   | -   | -   | -   | -   | -   |       |
+
+A enumeracao `q_i` segue a ordem **largura por profundidade** dos
+prefixos (prefixos mais curtos primeiro).
 
 ## 3. Arquitetura (DDD)
 
 ```
 src/
-├── domain/                  # regras puras, sem React/DOM
-│   ├── automaton.ts         # Q, Σ, δ, step, run, isAccepting, classifySymbol
-│   ├── token.ts             # TokenKind, KEYWORDS, kindOf, evaluateToken
-│   └── __tests__/
-├── application/             # orquestração / casos de uso
-│   ├── useLexer.ts          # reducer + hook React (lexerReducer)
-│   └── __tests__/
-└── presentation/            # UI / framer-motion
-    ├── App.tsx
-    └── components/
-        ├── AutomatonDiagram.tsx   # SVG animado dos 7 estados
-        ├── TokenInput.tsx         # captura tecla-a-tecla
-        ├── LiveBuffer.tsx
-        ├── TraceTape.tsx          # fita δ(q,a)=q'
-        ├── TokenHistory.tsx       # histórico com badge de Kind
-        └── Header.tsx
+|-- domain/                       # regras puras, sem React/DOM
+|   |-- grammar.ts                # Grammar = { keywords: Set<string> }
+|   |-- automaton.ts              # buildDFA, step, run, stateLabel
+|   |-- token.ts                  # evaluateToken (KEYWORD ou INVALID)
+|   `-- __tests__/
+|-- application/                  # orquestracao
+|   |-- useLexer.ts               # reducer + hook React
+|   `-- __tests__/
+`-- presentation/                 # UI / framer-motion
+    |-- App.tsx
+    `-- components/
+        |-- TransitionTable.tsx   # tabela delta animada
+        |-- GrammarEditor.tsx     # chips de tokens aceitos
+        |-- TokenInput.tsx        # captura tecla-a-tecla
+        |-- LiveBuffer.tsx        # buffer + estado em tempo real
+        |-- TraceTape.tsx         # fita de simbolos consumidos
+        |-- TokenHistory.tsx      # historico aceito/rejeitado
+        `-- Header.tsx
 ```
 
-- **Domain** — funções puras (`step`, `run`, `kindOf`, `evaluateToken`).
-  Não dependem de React, Vite ou framer-motion.
-- **Application** — `useLexer.ts` orquestra o ciclo do token
-  (acumular, finalizar no espaço, manter histórico). Reducer puro,
-  testável sem renderização.
-- **Presentation** — apenas reage ao estado vindo da application.
-  Nenhuma regra de negócio mora aqui.
+- **Domain** - `automaton.ts` constroi o AFD a partir da `Grammar`.
+  Funcoes `step`, `run`, `evaluateToken` sao puras e nao dependem
+  de React.
+- **Application** - `useLexer.ts` mantem buffer, estado, trace,
+  historico e a `Grammar` corrente. `SET_GRAMMAR` reconstroi o AFD
+  e zera o buffer (delta mudou).
+- **Presentation** - reage ao estado vindo da application. A tabela
+  e os chips animam por meio do framer-motion.
 
 ## 4. Como funciona, passo a passo
 
-1. O usuário digita uma tecla no campo de entrada.
-2. `TokenInput` intercepta o `keydown` e despacha `CONSUME(symbol)`.
-3. O reducer chama `step(estadoAtual, symbol)` — função pura do domain.
-4. O novo estado, o símbolo lido e a transição (`from → to`) entram
-   na **fita de execução** (trace).
-5. O diagrama destaca o novo estado e anima a aresta
-   `δ(from, symbol) = to`.
-6. Quando **espaço** é pressionado, o reducer chama
-   `evaluateToken(buffer)`, que retorna `{ status, kind, finalState }`.
-   O token vai para o histórico com badge **ACEITO/REJEITADO** e badge
-   **KEYWORD / IDENT / NUMBER / OPERATOR / INVALID**.
-7. O buffer e o trace são resetados; o autômato volta a `q₀`.
+1. O usuario adiciona palavras no painel **Gramatica**. Cada palavra
+   vira um chip; o AFD e reconstruido a cada alteracao.
+2. O usuario digita uma tecla no campo de entrada.
+3. `TokenInput` intercepta o `keydown` e despacha `CONSUME(symbol)`.
+4. O reducer chama `step(dfa, estadoAtual, symbol)` - funcao pura do
+   domain.
+5. O simbolo lido, o estado de origem e o de destino entram na **fita
+   de execucao**. A celula correspondente na tabela `delta` pulsa em
+   ciano.
+6. Quando **espaco** (ou Enter) e pressionado, o reducer chama
+   `evaluateToken(dfa, buffer)`. Se o estado final estiver em F, o
+   token vai para o historico como **ACEITO / KEYWORD**; caso
+   contrario **REJEITADO / INVALID**.
+7. O buffer e o trace sao resetados; o automato volta a `q_0`.
 
-## 5. Exemplos
+## 5. Exemplos (gramatica padrao: let print if else while true false)
 
-| Entrada    | Estado final | Aceito? | Kind     |
-| ---        | ---          | ---     | ---      |
-| `let`      | IN_IDENT     | ✅      | KEYWORD  |
-| `Hello_42` | IN_IDENT     | ✅      | IDENT    |
-| `42`       | IN_INT       | ✅      | NUMBER   |
-| `3.14`     | IN_FLOAT     | ✅      | NUMBER   |
-| `+`        | OP_DONE      | ✅      | OPERATOR |
-| `3.`       | AFTER_DOT    | ❌      | INVALID  |
-| `++`       | DEAD         | ❌      | INVALID  |
-| `a+b`      | DEAD         | ❌      | INVALID  |
-| `.5`       | DEAD         | ❌      | INVALID  |
-| `@nope`    | DEAD         | ❌      | INVALID  |
+| Entrada | Estado final | Aceito? | Kind    |
+| ---     | ---          | ---     | ---     |
+| `let`   | `let`        | sim     | KEYWORD |
+| `if`    | `if`         | sim     | KEYWORD |
+| `el`    | `el`         | nao     | INVALID |
+| `lets`  | `qd`         | nao     | INVALID |
+| `foo`   | `qd`         | nao     | INVALID |
 
 ## 6. Como rodar localmente
 
-Pré-requisitos: Node ≥ 18 e `npm`.
+Pre-requisitos: Node >= 18 e `npm`.
 
 ```bash
 npm install
 npm run dev          # http://localhost:5173
-npm test             # roda os 84 testes (vitest)
+npm test             # roda todos os testes (vitest)
 npm run build        # gera dist/
 npm run preview      # serve o dist/ localmente
 ```
 
 ## 7. Como fazer o deploy (Cloudflare Pages)
 
-O projeto está configurado para Cloudflare Pages via `wrangler.toml`.
+O projeto esta configurado para Cloudflare Pages via `wrangler.toml`.
 
 ```bash
 # autentique-se (uma vez)
@@ -160,43 +175,46 @@ npx wrangler pages project create formal-cella --production-branch main
 npm run deploy
 ```
 
-Após o primeiro deploy, vincule o domínio `formal.cella.website` no
+Apos o primeiro deploy, vincule o dominio `formal.cella.website` no
 painel da Cloudflare:
 
-`Cloudflare Dashboard → Workers & Pages → formal-cella → Custom domains → Set up a custom domain`
+`Cloudflare Dashboard -> Workers & Pages -> formal-cella -> Custom domains -> Set up a custom domain`
 
 ## 8. Testes
 
-**84 testes** cobrem o domínio e a application:
+Cobertura do dominio e da application:
 
-| Arquivo | Casos |
+| Arquivo | Foco |
 | --- | --- |
-| `domain/__tests__/automaton.test.ts` | 61 — `classifySymbol`, `step` em cada estado, traps, `run` de tokens variados |
-| `domain/__tests__/token.test.ts`     | 10 — IDENT vs KEYWORD, NUMBER (int/float), OPERATOR, INVALID, `kindOf` direto |
-| `application/__tests__/useLexer.test.ts` | 13 — reducer completo, kinds no histórico, backspace, reset, cap de 50 |
+| `domain/__tests__/automaton.test.ts` | `buildDFA` (prefixos, alfabeto, accepting), `step`, `run`, `stateLabel` |
+| `domain/__tests__/token.test.ts`     | `evaluateToken` para keyword, prefixo, sufixo extra, desconhecido |
+| `domain/__tests__/grammar.test.ts`   | helpers de string, gramaticas distintas geram automatos distintos |
+| `application/__tests__/useLexer.test.ts` | reducer completo: walk, finalize, backspace, reset, `SET_GRAMMAR`, cap |
 
 Execute com `npm test`.
 
 ## 9. Tecnologias
 
-- **Vite** — bundler e dev server
-- **React 18 + TypeScript** — UI
-- **Tailwind CSS** — estilos utilitários (paleta Steam: navy + ciano)
-- **Framer Motion** — animações declarativas
-- **Vitest + Testing Library** — testes
-- **Cloudflare Pages + Wrangler** — hospedagem estática
+- **Vite** - bundler e dev server
+- **React 18 + TypeScript** - UI
+- **Tailwind CSS** - paleta inspirada na Steam (navy + ciano)
+- **Framer Motion** - animacoes declarativas
+- **Vitest + Testing Library** - testes
+- **Cloudflare Pages + Wrangler** - hospedagem estatica
 
-## 10. Critérios de avaliação atendidos
+## 10. Criterios de avaliacao atendidos
 
-1. Permite digitação do token (campo de entrada controlado).
-2. Acompanhamento símbolo-a-símbolo (fita de execução + diagrama animado).
-3. Aceita ou recusa tokens propostos com **classificação por kind**.
-4. Execução estável (84 testes verdes, build sem warnings críticos).
-5. Interface clara, focada na máquina de estados.
-6. Algoritmo reflete fielmente o AFD — `δ` é literalmente uma função pura.
+1. Permite digitacao do token (campo de entrada controlado).
+2. Acompanhamento simbolo-a-simbolo (tabela delta com pulso na celula
+   destino + fita de execucao).
+3. Aceita ou recusa tokens propostos com base no AFD.
+4. Execucao estavel (todos os testes passam, build sem warnings).
+5. Interface clara, focada no funcionamento da maquina de estados.
+6. Algoritmo reflete o AFD - `delta` e literalmente uma funcao pura
+   construida a partir da gramatica.
 
 ---
 
 **Autor:** Guilherme Luiz Cella
-**Disciplina:** Linguagens Formais — 2026/1
-**Apresentação:** 01/07/2026
+**Disciplina:** Linguagens Formais - 2026/1
+**Apresentacao:** 01/07/2026
